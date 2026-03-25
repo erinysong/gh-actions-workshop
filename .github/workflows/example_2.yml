@@ -1,0 +1,48 @@
+name: Simple Input/Output Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      name:
+        description: "Enter your name"
+        required: false
+        type: string
+        default: "Natalia"
+      favorite_number:
+        description: "Enter your favorite number"
+        required: true
+        type: number
+
+jobs:
+  job_one:
+    name: "Job 1: Process Inputs"
+    runs-on: ubuntu-latest
+    outputs:
+      greeting: ${{ steps.build_greeting.outputs.greeting }}
+      doubled_number: ${{ steps.double_number.outputs.doubled_number }}
+    steps:
+      - name: Build a greeting
+        id: build_greeting
+        run: |
+          GREETING="Hello, ${{ inputs.name }}!"
+          echo "greeting=$GREETING" >> $GITHUB_OUTPUT
+          echo "Greeting created: $GREETING"
+
+      - name: Double the number
+        id: double_number
+        run: |
+          DOUBLED=$(( ${{ inputs.favorite_number }} * 2 ))
+          echo "doubled_number=$DOUBLED" >> $GITHUB_OUTPUT
+          echo "Doubled number: $DOUBLED"
+
+  job_two:
+    name: "Job 2: Use Outputs from Job 1"
+    runs-on: ubuntu-latest
+    needs: job_one
+    steps:
+      - name: Display results
+        run: |
+          echo "================================"
+          echo "  Greeting      : ${{ needs.job_one.outputs.greeting }}"
+          echo "  Doubled Number: ${{ needs.job_one.outputs.doubled_number }}"
+          echo "================================"
